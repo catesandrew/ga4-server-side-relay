@@ -36,10 +36,19 @@ describe("mp-client.ts", () => {
     expect(payload.ip_override).toBe("1.2.3.4");
     expect(payload.events[0]?.params).toMatchObject({
       custom: "x",
-      session_id: "sess1",
       ga_session_id: "sess1",
       ga_session_number: 3,
       engagement_time_msec: 1,
     });
+  });
+
+  it("does not send a redundant session_id param (M0.1 live-GA4 NAME_DUPLICATED finding, 2026-08-24)", () => {
+    const payload = buildMpPayload({
+      clientId: "cid",
+      events: [{ event_id: "e1", name: "page_view", params: {} }],
+      sessionId: "sess1",
+      sessionNumber: 1,
+    });
+    expect(payload.events[0]?.params).not.toHaveProperty("session_id");
   });
 });

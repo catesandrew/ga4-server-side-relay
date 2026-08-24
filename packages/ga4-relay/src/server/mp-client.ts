@@ -57,7 +57,13 @@ function toMpConsentField(value: ConsentSignal["ad_user_data"]): "GRANTED" | "DE
   return value === "granted" ? "GRANTED" : "DENIED";
 }
 
-/** Auto-injects the session/engagement params MP needs for Realtime visibility (M0.1 finding a). */
+/**
+ * Auto-injects the session/engagement params MP needs for Realtime visibility (M0.1 finding a).
+ * Only `ga_session_id`/`ga_session_number` are set — a live GA4 debug/mp/collect check (M0.1,
+ * re-verified 2026-08-24 against a real property) flagged a redundant `session_id` param as
+ * NAME_DUPLICATED: GA4 canonicalizes `ga_session_id` to the same internal session field, so
+ * also sending `session_id` collides with it rather than adding information.
+ */
 export function buildMpPayload(params: BuildPayloadParams): MpPayload {
   return {
     client_id: params.clientId,
@@ -73,7 +79,6 @@ export function buildMpPayload(params: BuildPayloadParams): MpPayload {
       name: event.name,
       params: {
         ...event.params,
-        session_id: params.sessionId,
         engagement_time_msec: 1,
         ga_session_id: params.sessionId,
         ga_session_number: params.sessionNumber,

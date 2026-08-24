@@ -13,6 +13,7 @@
   "bugs": "https://github.com/catesandrew/ga4-server-side-relay/issues",
   "keywords": ["ga4", "google-analytics", "measurement-protocol", "server-side-tagging", "nextjs", "vercel", "service-worker"],
   "type": "module",
+  "sideEffects": false,
   "publishConfig": {
     "access": "public"
   },
@@ -24,6 +25,10 @@
     "./server": {
       "types": "./dist/server/index.d.ts",
       "import": "./dist/server/index.js"
+    },
+    "./server/sw-script-loader": {
+      "types": "./dist/server/sw-script-loader.d.ts",
+      "import": "./dist/server/sw-script-loader.js"
     },
     "./client": {
       "types": "./dist/client/index.d.ts",

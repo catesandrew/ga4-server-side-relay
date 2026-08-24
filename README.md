@@ -114,8 +114,17 @@ export const GET = createServiceWorkerHandler({
 import { useEffect } from "react";
 import { createGa4Client } from "@gtmss/ga4-relay/client";
 
+// Module-level, not component-instance-scoped: App Router's dev-mode
+// double-invokes effects (mount → cleanup → mount), which would otherwise
+// call createGa4Client() — and register the SW — twice in quick succession.
+// A useRef guard wouldn't survive the dev-mode remount; this does. Only
+// matters in dev — production builds don't double-invoke effects.
+let ga4ClientInitialized = false;
+
 export function Ga4Init() {
   useEffect(() => {
+    if (ga4ClientInitialized) return;
+    ga4ClientInitialized = true;
     const client = createGa4Client({
       collectUrl: "/api/ga4/collect",
       swScriptUrl: "/ga4-relay/ga4-sw.js", // omit to skip the SW entirely
@@ -192,3 +201,16 @@ pnpm run typecheck
 pnpm exec eslint .              # includes the client/server entrypoint-boundary rule
 pnpm --filter demo build        # apps/demo — requires apps/demo/.env.local, see .env.example
 ```
+
+## Releasing
+
+Versioning and the changelog are managed with [Changesets](https://github.com/changesets/changesets).
+
+```sh
+pnpm changeset      # add a changeset describing a user-facing change (per PR)
+pnpm run version    # consume pending changesets into a version bump + CHANGELOG update
+pnpm run build      # build packages/ga4-relay before publishing
+pnpm run release    # publish packages/ga4-relay to npm
+```
+
+`apps/demo` is private and ignored by Changesets — it never gets a changeset prompt or version bump.
