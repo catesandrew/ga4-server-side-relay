@@ -1,6 +1,6 @@
 {
   "name": "@gtmss/ga4-relay",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Server-side GA4 Measurement Protocol relay for Next.js/Vercel, with a first-party cookie/token layer and an offline-capable service worker client.",
   "license": "MIT",
   "author": "Andrew Cates",
