@@ -7,7 +7,7 @@
     "build": "next build"
   },
   "dependencies": {
-    "@gtm-server-side/ga4-relay": "workspace:*",
+    "@gtmss/ga4-relay": "workspace:*",
     "@upstash/redis": "^1.34.0",
     "next": "^15.1.0",
     "react": "^19.0.0",

@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
-import { createServiceWorkerHandler } from "@gtm-server-side/ga4-relay/server";
+import { createServiceWorkerHandler } from "@gtmss/ga4-relay/server";
 
 export const runtime = "nodejs";
 
@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 // module-eval/build-analysis time (see create-service-worker-handler.ts).
 async function loadScriptSource(): Promise<string> {
   const require = createRequire(import.meta.url);
-  const swScriptPath = require.resolve("@gtm-server-side/ga4-relay/sw-script");
+  const swScriptPath = require.resolve("@gtmss/ga4-relay/sw-script");
   return readFile(swScriptPath, "utf8");
 }
 

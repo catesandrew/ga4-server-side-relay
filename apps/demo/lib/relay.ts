@@ -1,5 +1,5 @@
 import { after } from "next/server";
-import { createGa4Relay, InMemoryStore, UpstashStore } from "@gtm-server-side/ga4-relay/server";
+import { createGa4Relay, InMemoryStore, UpstashStore } from "@gtmss/ga4-relay/server";
 import { Redis } from "@upstash/redis";
 
 function buildStore() {

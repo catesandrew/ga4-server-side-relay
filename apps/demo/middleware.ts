@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { withGa4Token, GA4_TOKEN_HEADER, serializeSetCookie } from "@gtm-server-side/ga4-relay/server";
+import { withGa4Token, GA4_TOKEN_HEADER, serializeSetCookie } from "@gtmss/ga4-relay/server";
 
 // Deliberately does NOT import ./lib/relay.ts — that module constructs the
 // full createGa4Relay() object (store, mp-client, etc.), and Next.js

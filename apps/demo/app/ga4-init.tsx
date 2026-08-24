@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { createGa4Client } from "@gtm-server-side/ga4-relay/client";
+import { createGa4Client } from "@gtmss/ga4-relay/client";
 
 export function Ga4Init() {
   useEffect(() => {

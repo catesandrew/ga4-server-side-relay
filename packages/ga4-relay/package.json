@@ -1,8 +1,25 @@
 {
-  "name": "@gtm-server-side/ga4-relay",
+  "name": "@gtmss/ga4-relay",
   "version": "0.1.0",
-  "private": true,
+  "description": "Server-side GA4 Measurement Protocol relay for Next.js/Vercel, with a first-party cookie/token layer and an offline-capable service worker client.",
+  "license": "MIT",
+  "author": "Andrew Cates",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/catesandrew/ga4-server-side-relay.git",
+    "directory": "packages/ga4-relay"
+  },
+  "homepage": "https://github.com/catesandrew/ga4-server-side-relay/tree/main/packages/ga4-relay#readme",
+  "bugs": "https://github.com/catesandrew/ga4-server-side-relay/issues",
+  "keywords": ["ga4", "google-analytics", "measurement-protocol", "server-side-tagging", "nextjs", "vercel", "service-worker"],
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "exports": {
     "./server": {
       "types": "./dist/server/index.d.ts",
