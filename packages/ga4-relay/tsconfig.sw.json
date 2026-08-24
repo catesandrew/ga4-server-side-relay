@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "WebWorker"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": [
+    "src/sw/**/*.ts",
+    "src/shared/**/*.ts",
+    "src/client/queue.ts",
+    "src/client/flush.ts",
+    "src/client/consent-bridge.ts"
+  ]
+}

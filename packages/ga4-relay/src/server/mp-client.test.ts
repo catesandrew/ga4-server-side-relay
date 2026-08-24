@@ -1,0 +1,45 @@
+import { describe, expect, it } from "vitest";
+import { buildMpPayload, collectUrl, debugCollectUrl } from "./mp-client.js";
+
+describe("mp-client.ts", () => {
+  it("builds the global collect URL with measurement_id and api_secret", () => {
+    const url = collectUrl({ measurementId: "G-TEST", apiSecret: "sekret" });
+    expect(url).toContain("https://www.google-analytics.com/mp/collect");
+    expect(url).toContain("measurement_id=G-TEST");
+    expect(url).toContain("api_secret=sekret");
+  });
+
+  it("uses the EU regional endpoint when configured", () => {
+    const url = collectUrl({ measurementId: "G-TEST", apiSecret: "sekret", region: "eu" });
+    expect(url).toContain("https://region1.google-analytics.com/mp/collect");
+  });
+
+  it("builds the debug endpoint URL", () => {
+    const url = debugCollectUrl({ measurementId: "G-TEST", apiSecret: "sekret" });
+    expect(url).toContain("/debug/mp/collect");
+  });
+
+  it("respects endpointBaseOverride for tests", () => {
+    const url = collectUrl({ measurementId: "G-TEST", apiSecret: "sekret", endpointBaseOverride: "http://localhost:1234" });
+    expect(url.startsWith("http://localhost:1234/mp/collect")).toBe(true);
+  });
+
+  it("buildMpPayload auto-injects session/engagement params (M0.1 fidelity finding a)", () => {
+    const payload = buildMpPayload({
+      clientId: "cid",
+      events: [{ event_id: "e1", name: "page_view", params: { custom: "x" } }],
+      sessionId: "sess1",
+      sessionNumber: 3,
+      ipOverride: "1.2.3.4",
+    });
+    expect(payload.client_id).toBe("cid");
+    expect(payload.ip_override).toBe("1.2.3.4");
+    expect(payload.events[0]?.params).toMatchObject({
+      custom: "x",
+      session_id: "sess1",
+      ga_session_id: "sess1",
+      ga_session_number: 3,
+      engagement_time_msec: 1,
+    });
+  });
+});
