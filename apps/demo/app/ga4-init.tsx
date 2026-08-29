@@ -1,22 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createGa4Client } from "@gtmss/ga4-relay/client";
+import { getGa4Client } from "../lib/ga4-client";
 import { DEMO_TEST_IDS } from "../lib/test-ids/catalog";
 
 // Module-level, not component-instance-scoped: React's App Router dev mode
 // intentionally double-invokes effects (mount → cleanup → mount) to surface
-// missing cleanup, which would otherwise call createGa4Client() (and thus
-// register the SW) twice in quick succession — a real race caught live via
-// Playwright e2e (packages/ga4-relay/e2e/ac27-scope.spec.ts,
-// ac14-coexistence.spec.ts): the first registration transiently reports
-// active before a second, redundant one supersedes it. A useRef guard
-// wouldn't survive the dev-mode remount; this module-level flag does,
-// since it isn't reset when the component instance is torn down and
-// recreated. Production builds don't double-invoke effects, so this only
-// matters for local dev, but real consumers copying this pattern will hit
-// it in their own dev environments too.
-let ga4ClientInitialized = false;
+// missing cleanup, which would otherwise fire the initial page_view track
+// call twice in quick succession — a real race caught live via Playwright
+// e2e (packages/ga4-relay/e2e/ac27-scope.spec.ts, ac14-coexistence.spec.ts).
+// A useRef guard wouldn't survive the dev-mode remount; this module-level
+// flag does, since it isn't reset when the component instance is torn down
+// and recreated. Production builds don't double-invoke effects, so this
+// only matters for local dev, but real consumers copying this pattern will
+// hit it in their own dev environments too. (getGa4Client() itself is a
+// separate singleton, so SW double-registration can't recur even without
+// this flag — this guard exists purely to keep the auto page_view a
+// single track() call.)
+let pageViewTracked = false;
 
 type TrackStatus = "idle" | "tracked";
 
@@ -29,21 +30,17 @@ export function Ga4Init() {
   const [trackEpoch, setTrackEpoch] = useState(0);
 
   useEffect(() => {
-    if (ga4ClientInitialized) return;
-    ga4ClientInitialized = true;
+    if (pageViewTracked) return;
+    pageViewTracked = true;
     try {
-      const client = createGa4Client({
-        collectUrl: "/api/ga4/collect",
-        swScriptUrl: "/ga4-relay/ga4-sw.js",
-        swScope: "/ga4-relay/",
-      });
+      const client = getGa4Client();
       client.track({ event_id: crypto.randomUUID(), name: "page_view", params: {} });
       setTrackStatus("tracked");
       setTrackEpoch((epoch) => epoch + 1);
     } catch (error) {
       // Reset the guard on failure so it isn't stuck permanently latched
       // with the sentinel frozen at "idle" and no page_view ever sent.
-      ga4ClientInitialized = false;
+      pageViewTracked = false;
       console.error("Ga4Init: failed to initialize GA4 client", error);
     }
   }, []);

@@ -16,4 +16,18 @@ export const DEMO_TEST_IDS = createTestIdRegistry({
      */
     statusSentinel: "ga4-init-status-sentinel",
   },
+  consentControls: {
+    /** Sets `analytics_storage: 'granted'` and dispatches the `ga4-relay:consent` contract event. */
+    grantButton: "consent-controls-grant-button",
+    /** Sets `analytics_storage: 'denied'` and dispatches the `ga4-relay:consent` contract event. */
+    denyButton: "consent-controls-deny-button",
+    /** Fires a manual track() call through the shared GA4 client, using whatever consent is currently set. */
+    trackButton: "consent-controls-track-button",
+    /**
+     * Hidden, always-mounted sentinel carrying data-consent-state/
+     * data-track-epoch so Playwright can observe consent transitions and
+     * manual track() calls without needing any visible UI.
+     */
+    statusSentinel: "consent-controls-status-sentinel",
+  },
 });
