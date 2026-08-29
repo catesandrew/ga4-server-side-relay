@@ -1,6 +1,7 @@
 import { expect, type Locator } from "@playwright/test";
 import { DEMO_TEST_IDS } from "../../../../apps/demo/lib/test-ids/catalog.mirror";
 import { BasePage } from "./BasePage";
+import { waitForAttributeValue } from "../wait/readiness";
 
 /**
  * Page object for the demo app's root route (`apps/demo/app/page.tsx`).
@@ -29,9 +30,19 @@ export class HomePage extends BasePage {
     return Number(value ?? 0);
   }
 
+  /**
+   * Readiness gate: waits for Ga4Init to leave `idle` and reach `tracked`
+   * (canonical helper — playwright-attribute-waits skill, invariant 1)
+   * before any assertion or follow-on interaction depends on tracking having
+   * fired.
+   */
+  async waitForGa4Tracked(): Promise<void> {
+    await waitForAttributeValue(this.ga4InitStatusSentinel, "data-state", "tracked");
+  }
+
   /** Asserts the auto page_view has fired exactly once (Ga4Init reached `tracked`, epoch === 1). */
   async verifyGa4Tracked(): Promise<void> {
-    await expect(this.ga4InitStatusSentinel).toHaveAttribute("data-state", "tracked");
+    await this.waitForGa4Tracked();
     await expect(this.ga4InitStatusSentinel).toHaveAttribute("aria-busy", "false");
     await expect(this.ga4InitStatusSentinel).toHaveAttribute("data-track-epoch", "1");
   }

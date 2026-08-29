@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { waitForPageSettled } from "../wait/readiness";
 
 /**
  * Shared base class every page object in this suite extends. Owns the one
@@ -14,15 +15,12 @@ export abstract class BasePage {
 
   /**
    * Navigates to this page's route and waits for it to settle before
-   * returning control to the caller.
-   *
-   * No project-specific attribute-readiness helper exists in this suite
-   * yet (that's the sibling playwright-attribute-waits skill's concern) —
-   * `waitForLoadState('networkidle')` is the documented fallback until one
-   * is wired in. Swap this for the real helper once it lands.
+   * returning control to the caller. Route-agnostic, so it has no
+   * per-element attribute to gate on — `waitForPageSettled` (canonical
+   * wait/readiness module) is the degrade-gracefully fallback for that case.
    */
   async navigate(): Promise<void> {
     await this.page.goto(this.route);
-    await this.page.waitForLoadState("networkidle");
+    await waitForPageSettled(this.page);
   }
 }
