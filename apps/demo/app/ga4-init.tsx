@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createGa4Client } from "@gtmss/ga4-relay/client";
+import { DEMO_TEST_IDS } from "../lib/test-ids/catalog";
 
 // Module-level, not component-instance-scoped: React's App Router dev mode
 // intentionally double-invokes effects (mount → cleanup → mount) to surface
@@ -17,7 +18,16 @@ import { createGa4Client } from "@gtmss/ga4-relay/client";
 // it in their own dev environments too.
 let ga4ClientInitialized = false;
 
+type TrackStatus = "idle" | "tracked";
+
 export function Ga4Init() {
+  // Drives both the sentinel's data-state/aria-busy below AND whether
+  // client.track() has fired — a Playwright spec observes this same
+  // variable to confirm exactly one page_view was sent even under React's
+  // dev-mode double-invoke (see the module-level guard comment above).
+  const [trackStatus, setTrackStatus] = useState<TrackStatus>("idle");
+  const [trackEpoch, setTrackEpoch] = useState(0);
+
   useEffect(() => {
     if (ga4ClientInitialized) return;
     ga4ClientInitialized = true;
@@ -27,6 +37,21 @@ export function Ga4Init() {
       swScope: "/ga4-relay/",
     });
     client.track({ event_id: crypto.randomUUID(), name: "page_view", params: {} });
+    setTrackStatus("tracked");
+    setTrackEpoch((epoch) => epoch + 1);
   }, []);
-  return null;
+
+  // Hidden, always-mounted sentinel: Ga4Init otherwise renders nothing, so
+  // this is the only DOM surface Playwright has to observe the page_view
+  // auto-track and double-invoke-guard behavior described above.
+  return (
+    <div
+      data-testid={DEMO_TEST_IDS.ga4Init.statusSentinel}
+      data-state={trackStatus}
+      data-track-epoch={trackEpoch}
+      aria-busy={trackStatus === "idle"}
+      aria-hidden="true"
+      style={{ display: "none" }}
+    />
+  );
 }
