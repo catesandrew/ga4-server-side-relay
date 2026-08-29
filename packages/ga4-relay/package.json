@@ -11,7 +11,15 @@
   },
   "homepage": "https://github.com/catesandrew/ga4-server-side-relay/tree/main/packages/ga4-relay#readme",
   "bugs": "https://github.com/catesandrew/ga4-server-side-relay/issues",
-  "keywords": ["ga4", "google-analytics", "measurement-protocol", "server-side-tagging", "nextjs", "vercel", "service-worker"],
+  "keywords": [
+    "ga4",
+    "google-analytics",
+    "measurement-protocol",
+    "server-side-tagging",
+    "nextjs",
+    "vercel",
+    "service-worker"
+  ],
   "type": "module",
   "sideEffects": false,
   "publishConfig": {
@@ -48,7 +56,7 @@
     "next": ">=15.1.0"
   },
   "dependencies": {
-    "@idhub/identity-core": "link:../../../identity/packages/identity-core",
+    "@idhub/identity-core": "^0.1.0",
     "@upstash/redis": "^1.34.0"
   },
   "devDependencies": {
