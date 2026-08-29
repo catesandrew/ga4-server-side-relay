@@ -57,6 +57,9 @@ importers:
 
   packages/ga4-relay:
     dependencies:
+      '@idhub/identity-core':
+        specifier: link:../../../identity/packages/identity-core
+        version: link:../../../identity/packages/identity-core
       '@upstash/redis':
         specifier: ^1.34.0
         version: 1.38.2

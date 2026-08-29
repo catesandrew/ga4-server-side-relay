@@ -51,6 +51,14 @@ export interface BuildPayloadParams {
   consent?: ConsentSignal;
   /** Epoch milliseconds at capture time (AC6b/AC12) — converted to the micros MP expects. */
   capturedAtMs?: number;
+  /**
+   * Canonical `@idhub/identity-core` anonymous id (US-011). Deliberately
+   * distinct from `clientId`/GA4's own client_id cookie — forwarded as a
+   * custom event param, never merged with or substituted for client_id, so
+   * downstream joins can stitch GA4 events to the cross-vendor identity
+   * graph without disturbing GA4's own client_id semantics.
+   */
+  anonymousId?: string;
 }
 
 function toMpConsentField(value: ConsentSignal["ad_user_data"]): "GRANTED" | "DENIED" {
@@ -82,6 +90,10 @@ export function buildMpPayload(params: BuildPayloadParams): MpPayload {
         engagement_time_msec: 1,
         ga_session_id: params.sessionId,
         ga_session_number: params.sessionNumber,
+        // US-011: custom param carrying the canonical @idhub anonymous id
+        // alongside GA4's own identifiers; JSON.stringify drops this key
+        // when undefined (callers that don't pass one are unaffected).
+        idhub_anonymous_id: params.anonymousId,
       },
     })),
   };

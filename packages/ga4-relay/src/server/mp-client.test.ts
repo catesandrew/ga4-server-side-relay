@@ -51,4 +51,27 @@ describe("mp-client.ts", () => {
     });
     expect(payload.events[0]?.params).not.toHaveProperty("session_id");
   });
+
+  it("US-011: forwards the canonical @idhub anonymous id as idhub_anonymous_id without touching client_id", () => {
+    const payload = buildMpPayload({
+      clientId: "cid",
+      events: [{ event_id: "e1", name: "page_view", params: {} }],
+      sessionId: "sess1",
+      sessionNumber: 1,
+      anonymousId: "anon-123",
+    });
+    expect(payload.client_id).toBe("cid");
+    expect(payload.events[0]?.params.idhub_anonymous_id).toBe("anon-123");
+  });
+
+  it("US-011: idhub_anonymous_id is undefined (and dropped by JSON.stringify) when no anonymous id is supplied", () => {
+    const payload = buildMpPayload({
+      clientId: "cid",
+      events: [{ event_id: "e1", name: "page_view", params: {} }],
+      sessionId: "sess1",
+      sessionNumber: 1,
+    });
+    expect(payload.events[0]?.params.idhub_anonymous_id).toBeUndefined();
+    expect(JSON.parse(JSON.stringify(payload)).events[0].params).not.toHaveProperty("idhub_anonymous_id");
+  });
 });

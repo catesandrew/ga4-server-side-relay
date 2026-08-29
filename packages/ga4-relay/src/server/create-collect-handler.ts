@@ -20,6 +20,7 @@ import { GA4_TOKEN_HEADER } from "./with-token-middleware.js";
 import { exceedsBodySize, isValidCollectBody, splitIntoBatches, validateEvent } from "./validate.js";
 import { recordTelemetry } from "./telemetry.js";
 import type { CollectRequestBody } from "../shared/event.js";
+import { getOrCreateAnonymousIdFromRequest } from "@idhub/identity-core";
 
 /** Recommended `export const maxDuration` for the installer's route file — not the 300s default. */
 export const RECOMMENDED_MAX_DURATION = 10;
@@ -120,6 +121,14 @@ export function createCollectHandler(config: RelayConfig, deps: CollectHandlerDe
       gaCookie: cookies["_ga"],
     });
 
+    // US-011: establish the canonical @idhub anonymous id alongside — not
+    // instead of — the GA4-specific client_id above. These are deliberately
+    // distinct identifiers for distinct purposes (see cookies.ts) and must
+    // never be merged or substituted for one another.
+    const anonymousIdResult = getOrCreateAnonymousIdFromRequest(req, {
+      domain: config.cookieDomain,
+    });
+
     // Replay path (AC22/AC24): a queued offline event flushed later. The
     // signature must verify AND the signed client_id must match the live
     // cookie — the signature alone only authorizes session continuity,
@@ -198,6 +207,7 @@ export function createCollectHandler(config: RelayConfig, deps: CollectHandlerDe
           ipOverride,
           consent: body.consent,
           capturedAtMs,
+          anonymousId: anonymousIdResult.anonymousId,
         });
         try {
           await sendToMp(payload, config, { userAgent });
@@ -231,6 +241,10 @@ export function createCollectHandler(config: RelayConfig, deps: CollectHandlerDe
           cookieDomain: config.cookieDomain,
         }),
       ),
+      // US-011: identity-core already produced a fully-serialized Set-Cookie
+      // string, so it's appended directly alongside the two above rather
+      // than routed through serializeSetCookie/CookieDescriptor.
+      anonymousIdResult.setCookieHeader,
     ];
 
     const identity = await signCaptureIdentity(

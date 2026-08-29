@@ -8,6 +8,7 @@ import { GA4_TOKEN_HEADER } from "./with-token-middleware.js";
 import { UpstashStore, type UpstashRedisLike } from "./store.js";
 import { startMockMpServer, type MockMpServer } from "../../test/mock-mp-server.js";
 import type { Ga4Event } from "../shared/event.js";
+import { DEFAULT_ANONYMOUS_ID_COOKIE_NAME, parseCookieHeader } from "@idhub/identity-core";
 
 const ORIGIN = "https://example.com";
 const TOKEN_SECRET = "test-token-secret";
@@ -549,6 +550,56 @@ describe("createCollectHandler", () => {
       );
       await waitForForward();
       expect(mockServer.requests).toHaveLength(0);
+    });
+  });
+
+  describe("US-011: @idhub/identity-core anonymous id integration", () => {
+    it("mints an _anon_id cookie on first contact and forwards the same value as idhub_anonymous_id to MP", async () => {
+      const { handler, waitForForward } = await makeHandler(mockServer);
+      const res = await handler(
+        request(
+          { events: [makeEvent()], consent: grantedConsent() },
+          { origin: ORIGIN, cookie: await tokenCookie() },
+        ),
+      );
+      await waitForForward();
+      expect(res.status).toBe(200);
+
+      const setCookies = res.headers.getSetCookie?.() ?? [res.headers.get("set-cookie") ?? ""];
+      const anonIdCookie = setCookies.find((c) => c.startsWith(`${DEFAULT_ANONYMOUS_ID_COOKIE_NAME}=`));
+      expect(anonIdCookie).toBeTruthy();
+      const anonymousId = parseCookieHeader(anonIdCookie)[DEFAULT_ANONYMOUS_ID_COOKIE_NAME];
+      expect(anonymousId).toBeTruthy();
+
+      const body = mockServer.requests[0]?.body as { events: Array<{ params: Record<string, unknown> }> };
+      expect(body.events[0]?.params.idhub_anonymous_id).toBe(anonymousId);
+
+      // US-011: the distinct GA4 client_id cookie/identity must be untouched.
+      expect(setCookies.some((c) => c.startsWith(CLIENT_ID_COOKIE))).toBe(true);
+      expect(body).toMatchObject({ client_id: expect.any(String) });
+    });
+
+    it("reuses an existing _anon_id cookie instead of minting a new one, and forwards that same value", async () => {
+      const { handler, waitForForward } = await makeHandler(mockServer);
+      const existingAnonymousId = "existing-anon-id-123";
+      const res = await handler(
+        request(
+          { events: [makeEvent()], consent: grantedConsent() },
+          {
+            origin: ORIGIN,
+            cookie: `${await tokenCookie()}; ${DEFAULT_ANONYMOUS_ID_COOKIE_NAME}=${existingAnonymousId}`,
+          },
+        ),
+      );
+      await waitForForward();
+      expect(res.status).toBe(200);
+
+      const body = mockServer.requests[0]?.body as { events: Array<{ params: Record<string, unknown> }> };
+      expect(body.events[0]?.params.idhub_anonymous_id).toBe(existingAnonymousId);
+
+      const setCookies = res.headers.getSetCookie?.() ?? [res.headers.get("set-cookie") ?? ""];
+      const anonIdCookie = setCookies.find((c) => c.startsWith(`${DEFAULT_ANONYMOUS_ID_COOKIE_NAME}=`));
+      expect(parseCookieHeader(anonIdCookie)[DEFAULT_ANONYMOUS_ID_COOKIE_NAME]).toBe(existingAnonymousId);
     });
   });
 
