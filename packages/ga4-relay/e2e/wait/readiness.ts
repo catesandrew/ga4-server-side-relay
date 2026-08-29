@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, type BrowserContext, type Locator, type Page } from "@playwright/test";
 
 /**
  * Canonical readiness/locators helper module (playwright-attribute-waits
@@ -62,4 +62,33 @@ export async function waitForEpochAdvance(
 export async function waitForPageSettled(page: Page, opts: WaitOptions = {}): Promise<void> {
   const timeout = opts.timeout ?? DEFAULT_TIMEOUT;
   await page.waitForLoadState("networkidle", { timeout });
+}
+
+/**
+ * State gate for a browser cookie rather than a DOM attribute — needed when
+ * the action under test (e.g. a fire-and-forget client-sdk `track()` call)
+ * returns before the identity cookie its request sets has actually landed
+ * in the context's cookie jar. Polls `context.cookies()` (real browser
+ * state, no mocking) until `name` appears, then returns its value; this is
+ * the canonical replacement for a `waitForTimeout` guess at how long the
+ * in-flight request takes to resolve.
+ */
+export async function waitForCookieValue(
+  context: BrowserContext,
+  name: string,
+  opts: WaitOptions = {},
+): Promise<string> {
+  const timeout = opts.timeout ?? DEFAULT_TIMEOUT;
+  await expect
+    .poll(async () => {
+      const cookies = await context.cookies();
+      return cookies.some((cookie) => cookie.name === name);
+    }, { timeout })
+    .toBe(true);
+  const cookies = await context.cookies();
+  const match = cookies.find((cookie) => cookie.name === name);
+  if (!match) {
+    throw new Error(`Cookie "${name}" was observed present, then vanished before it could be read.`);
+  }
+  return match.value;
 }
