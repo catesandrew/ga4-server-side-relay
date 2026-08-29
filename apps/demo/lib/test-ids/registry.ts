@@ -39,12 +39,13 @@ function collectLiteralLeaves(node: TestIdTree, path: string[], out: Map<string,
 
 /**
  * Validates a nested test-id catalog for duplicate literal string leaves
- * and returns it typed `as const`. Validation only runs when
- * `process.env.NODE_ENV === 'development'` so production and CI builds pay
- * no runtime cost.
+ * and returns it typed `as const`. Validation is skipped only in
+ * `production` builds (`next build && next start`, which is how the e2e
+ * pipeline actually runs) so production pays no runtime cost while dev,
+ * test, and CI-like `NODE_ENV` values all still get the safety net.
  */
 export function createTestIdRegistry<const T extends TestIdTree>(catalog: T): T {
-  if (process.env.NODE_ENV === "development") {
+  if (process.env.NODE_ENV !== "production") {
     const seen = new Map<string, string[]>();
     collectLiteralLeaves(catalog, [], seen);
 

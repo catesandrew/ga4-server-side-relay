@@ -57,21 +57,45 @@ export function ConsentControls() {
   }
 
   function handleTrack() {
-    getGa4Client().track({ event_id: crypto.randomUUID(), name: "consent_controls_track", params: {} });
-    setTrackEpoch((epoch) => epoch + 1);
+    try {
+      getGa4Client().track({ event_id: crypto.randomUUID(), name: "consent_controls_track", params: {} });
+      setTrackEpoch((epoch) => epoch + 1);
+    } catch (error) {
+      console.error("ConsentControls: failed to track event", error);
+    }
   }
 
+  const statusMessage =
+    consentState === "granted"
+      ? "Analytics consent granted."
+      : consentState === "denied"
+        ? "Analytics consent denied."
+        : "";
+
   return (
-    <div>
-      <button type="button" data-testid={DEMO_TEST_IDS.consentControls.grantButton} onClick={handleGrant}>
+    <div role="group" aria-label="Analytics consent controls">
+      <button
+        type="button"
+        data-testid={DEMO_TEST_IDS.consentControls.grantButton}
+        aria-pressed={consentState === "granted"}
+        onClick={handleGrant}
+      >
         Grant analytics consent
       </button>
-      <button type="button" data-testid={DEMO_TEST_IDS.consentControls.denyButton} onClick={handleDeny}>
+      <button
+        type="button"
+        data-testid={DEMO_TEST_IDS.consentControls.denyButton}
+        aria-pressed={consentState === "denied"}
+        onClick={handleDeny}
+      >
         Deny analytics consent
       </button>
       <button type="button" data-testid={DEMO_TEST_IDS.consentControls.trackButton} onClick={handleTrack}>
         Track event
       </button>
+      <p aria-live="polite" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}>
+        {statusMessage}
+      </p>
       <div
         data-testid={DEMO_TEST_IDS.consentControls.statusSentinel}
         data-consent-state={consentState}
