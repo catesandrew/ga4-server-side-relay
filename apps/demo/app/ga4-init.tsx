@@ -31,14 +31,21 @@ export function Ga4Init() {
   useEffect(() => {
     if (ga4ClientInitialized) return;
     ga4ClientInitialized = true;
-    const client = createGa4Client({
-      collectUrl: "/api/ga4/collect",
-      swScriptUrl: "/ga4-relay/ga4-sw.js",
-      swScope: "/ga4-relay/",
-    });
-    client.track({ event_id: crypto.randomUUID(), name: "page_view", params: {} });
-    setTrackStatus("tracked");
-    setTrackEpoch((epoch) => epoch + 1);
+    try {
+      const client = createGa4Client({
+        collectUrl: "/api/ga4/collect",
+        swScriptUrl: "/ga4-relay/ga4-sw.js",
+        swScope: "/ga4-relay/",
+      });
+      client.track({ event_id: crypto.randomUUID(), name: "page_view", params: {} });
+      setTrackStatus("tracked");
+      setTrackEpoch((epoch) => epoch + 1);
+    } catch (error) {
+      // Reset the guard on failure so it isn't stuck permanently latched
+      // with the sentinel frozen at "idle" and no page_view ever sent.
+      ga4ClientInitialized = false;
+      console.error("Ga4Init: failed to initialize GA4 client", error);
+    }
   }, []);
 
   // Hidden, always-mounted sentinel: Ga4Init otherwise renders nothing, so
