@@ -24,7 +24,19 @@ test.describe("Debug endpoint — real identity passthrough", () => {
   test("resolves the browser's live identity cookies without minting or rewriting any of them", async ({
     page,
     context,
+    browserName,
   }) => {
+    // WebKit enforces the Secure cookie attribute strictly and has no
+    // localhost exception for plain HTTP the way Chromium/Firefox do, so it
+    // silently drops every cookie this app sets (identity cookies are
+    // Secure by design — see cookies.ts) whenever the e2e webServer runs
+    // over http://localhost, as it does here. Confirmed live: even the
+    // auto page_view track that already passes elsewhere in webkit leaves
+    // context.cookies() empty. Not fixable without serving the e2e app over
+    // HTTPS, which is out of scope here — skip rather than assert against
+    // an environment limitation.
+    test.skip(browserName === "webkit", "WebKit drops Secure cookies over http://localhost (no dev exception)");
+
     const homePage = new HomePage(page);
     await homePage.navigate();
     await homePage.grantConsent();
