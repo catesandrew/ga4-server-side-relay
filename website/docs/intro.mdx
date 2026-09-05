@@ -1,0 +1,36 @@
+---
+sidebar_position: 1
+---
+
+# Intro
+
+**GA4 Server-Side Relay** is a self-hosted, first-party [GA4 Measurement Protocol
+v2](https://developers.google.com/analytics/devguides/collection/protocol/ga4) relay for
+Next.js/Vercel — the resilience-and-first-party-hosting layer that
+[stape.io](https://stape.io) sells, not a clone of Google Tag Manager Server-Side.
+
+## What this is
+
+- **`packages/ga4-relay/`** — the installable package. Import `./server` in Next.js Route
+  Handlers and `middleware.ts`, `./client` in a client component that initializes tracking,
+  and let `./sw` be served by `createServiceWorkerHandler`.
+- **`apps/demo/`** — a reference Next.js install showing the exact wiring.
+
+## Why a relay, and not a GTM Server-Side clone
+
+Google Tag Manager Server-Side runs a full tag-management container you host and operate
+yourself. This project is narrower and more opinionated by design: it's a first-party relay
+that sits directly in *your* Next.js app — same origin as your site, same deploy as your
+Vercel project — and forwards events to the GA4 Measurement Protocol v2 endpoint on your
+behalf. That gets you the durability and first-party-cookie benefits of server-side
+collection without standing up and maintaining a separate container.
+
+## Where to go next
+
+- **[Installation](./installation)** — the five wiring points (route handler, middleware,
+  optional service worker, client, and the CMP/Consent Mode v2 integration contract) needed
+  to wire `@gtmss/ga4-relay` into your own Next.js app.
+- **[Design Notes](./design-notes)** — the behavioral details worth understanding before you
+  deploy to production: same-request token propagation, service worker scope, dedupe
+  fail-open vs. fail-closed semantics, best-effort delivery in v1, and the Upstash
+  requirement for rate limiting in production.
