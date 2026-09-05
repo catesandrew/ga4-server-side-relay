@@ -1,0 +1,17 @@
+{
+  "name": "gtm-server-side",
+  "owner": {
+    "name": "Personal"
+  },
+  "plugins": [
+    {
+      "name": "gtmss",
+      "description": "1 skills, distributed via the gtmss plugin command prefix.",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/gtm-server-side-onboarding"
+      ]
+    }
+  ]
+}

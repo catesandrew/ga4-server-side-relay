@@ -1,0 +1,92 @@
+# Ordering note: pnpm/action-setup MUST run before actions/setup-node when
+# using `cache: "pnpm"` — the cache step shells out to `pnpm store path` to
+# locate the cache directory, which doesn't exist until pnpm is installed.
+#
+# Token-absent guard: a merge to main before NPM_TOKEN is configured on the
+# repo must not red-fail this job. The guard step below computes an empty
+# `publish` input in that case so changesets/action still runs `version`
+# (keeping Version PRs working) without attempting to publish.
+name: skills-release
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: skills-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # Runs on every ordinary feature PR: confirms the package/marketplace
+  # generation is in sync with skills/* before merge. Does NOT run against
+  # the Version PR itself — GitHub does not fire pull_request events for
+  # content created by the default GITHUB_TOKEN, so the Version PR's real
+  # safety net is this same sync+validate sequence re-run inside `release`
+  # (see package-json-scripts-patch.jsonc) immediately before `changeset
+  # publish`, not this check.
+  verify:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node bin/generate-skill-package-json.mjs --check
+      - run: node bin/sync-skill-content.mjs --all
+      - run: node bin/validate-skill-package.mjs --all
+      - run: node bin/generate-marketplace.mjs --prefix gtmss
+      - run: git diff --exit-code
+
+  # Runs on push to main: opens/updates the Changesets Version PR, and once
+  # that PR is merged, versions + publishes only the packages that are both
+  # enabled (`private: false`) and listed in docs/published-skills.json.
+  release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check for NPM_TOKEN
+        id: npm-token-check
+        run: |
+          if [ -n "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "publish-input=pnpm run release" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish-input=" >> "$GITHUB_OUTPUT"
+          fi
+      # changesets/action is version-pinned to @v1 deliberately: v1 and
+      # v2/main use different input names (version/publish vs.
+      # version-script/publish-script) — an unpinned or wrong version
+      # silently no-ops the whole release path.
+      - uses: changesets/action@v1
+        with:
+          version: pnpm run version-packages
+          publish: ${{ steps.npm-token-check.outputs.publish-input }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+# Release recovery: a partial `changeset publish` failure is safe to retry —
+# already-published versions are skipped by Changesets' own registry-diff
+# logic, so recovery is just "re-run the job."

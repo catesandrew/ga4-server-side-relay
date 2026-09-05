@@ -1,0 +1,10 @@
+// Copy to app/api/ga4/collect/route.ts in the consuming Next.js app.
+// export const maxDuration MUST be set — the package's RECOMMENDED_MAX_DURATION
+// (10s), not the framework's 300s default. runAfterResponse work (dedupe write,
+// upstream GA4 POST) needs to finish before the function is torn down.
+import { relay } from "@/lib/relay"; // your own createGa4Relay(config, deps) instance
+
+export const runtime = "nodejs";
+export const maxDuration = 10; // RECOMMENDED_MAX_DURATION from @gtmss/ga4-relay/server
+
+export const POST = relay.createCollectHandler();

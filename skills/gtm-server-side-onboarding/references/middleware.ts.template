@@ -1,0 +1,28 @@
+// Copy to middleware.ts. Do NOT import your lib/relay.ts singleton here —
+// Next.js always runs middleware on the Edge runtime, and the full
+// createGa4Relay() config pulls in the Upstash client and other Node-only
+// code that breaks at runtime on Edge. withGa4Token takes only
+// { tokenSecret, cookieDomain }, never the full relay config.
+import { NextResponse, type NextRequest } from "next/server";
+import { withGa4Token, GA4_TOKEN_HEADER, serializeSetCookie } from "@gtmss/ga4-relay/server";
+
+const resolveToken = withGa4Token({
+  tokenSecret: process.env.GA4_TOKEN_SECRET!,
+  cookieDomain: process.env.GA4_COOKIE_DOMAIN,
+});
+
+export async function middleware(request: NextRequest) {
+  const { token, cookie } = await resolveToken(request);
+
+  // Forward via a request header so the ROUTE HANDLER sees the token on THIS
+  // request — a cookie set only via Set-Cookie is visible to the browser's
+  // *next* request, not this one. Skipping this means every clean browser's
+  // first request 401s.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set(GA4_TOKEN_HEADER, token);
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.append("set-cookie", serializeSetCookie(cookie));
+  return response;
+}
+
+export const config = { matcher: ["/api/ga4/:path*", "/ga4-relay/:path*"] };

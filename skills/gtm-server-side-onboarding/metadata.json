@@ -1,0 +1,14 @@
+{
+  "version": "0.1.0",
+  "organization": "Personal",
+  "date": "September 2026",
+  "abstract": "Onboarding a Next.js/Vercel repo to consume @gtmss/ga4-relay, this repo's self-hosted, first-party GA4 Measurement Protocol v2 relay. Four wiring points: a collect route handler, middleware.ts, an optional service worker, and a client-side init, plus a CMP/Consent Mode v2 signal contract the package only consumes. Load-bearing gotchas: middleware must import only withGa4Token({ tokenSecret, cookieDomain }) and never the full createGa4Relay() config, since Next.js always runs middleware on Edge and the full config pulls in the Upstash client and other Node-only code that breaks there; middleware must forward the resolved token via the x-ga4-relay-token request header, not just Set-Cookie, or every clean browser's first request 401s; the client init guard must be module-level state (not useRef) to survive App Router's dev-mode double-invoked effects and avoid double service-worker registration; createGa4Relay throws at construction if apiSecret/tokenSecret are missing or if the in-memory Store is used with NODE_ENV=production, which next build always sets, so real Upstash env vars must exist before the first production build, not just before deploy; and the optional service worker should be served from a nested path (/ga4-relay/ga4-sw.js) to keep its scope narrow so it can never take over a host site's existing service worker. Ships copy-in reference templates for all four wiring points plus the relay-instance singleton and an .env.example.",
+  "references": [
+    "references/route-handler.ts.template",
+    "references/relay-instance.ts.template",
+    "references/middleware.ts.template",
+    "references/sw-route.ts.template",
+    "references/client-init.tsx.template",
+    "references/env.example.template"
+  ]
+}

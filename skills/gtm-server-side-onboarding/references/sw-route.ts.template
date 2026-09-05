@@ -1,0 +1,18 @@
+// Copy to app/ga4-relay/ga4-sw.js/route.ts — served from a NESTED path
+// deliberately, giving the SW a natural default scope of /ga4-relay/ that
+// can never take over a host site's existing service worker at a broader
+// scope. Optional: skip entirely if you don't need the offline-queue
+// resilience layer, just basic collection.
+import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { createServiceWorkerHandler } from "@gtmss/ga4-relay/server";
+
+export const runtime = "nodejs";
+
+export const GET = createServiceWorkerHandler({
+  scope: "/ga4-relay/",
+  loadScriptSource: async () => {
+    const require = createRequire(import.meta.url);
+    return readFile(require.resolve("@gtmss/ga4-relay/sw-script"), "utf8");
+  },
+});

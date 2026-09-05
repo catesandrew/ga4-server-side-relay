@@ -10,7 +10,8 @@
     "typecheck": "tsc -p packages/ga4-relay/tsconfig.json --noEmit && tsc -p packages/ga4-relay/tsconfig.sw.json",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "changeset publish"
+    "version-packages": "changeset version && node bin/sync-metadata-version.mjs && pnpm install --lockfile-only",
+    "release": "node bin/generate-skill-package-json.mjs --check && node bin/sync-skill-content.mjs --all && node bin/validate-skill-package.mjs --all && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.1",

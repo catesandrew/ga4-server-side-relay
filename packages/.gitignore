@@ -1,0 +1,3 @@
+skill-*/*
+!skill-*/package.json
+!skill-*/CHANGELOG.md

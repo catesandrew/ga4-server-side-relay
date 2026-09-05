@@ -1,0 +1,19 @@
+{
+  "name": "@gtmss/skill-gtm-server-side-onboarding",
+  "version": "0.1.0",
+  "description": "Onboarding a Next.js/Vercel repo to consume @gtmss/ga4-relay, this repo's self-hosted, first-party GA4 Measurement Protocol v2 relay. Four wiring points: a collect route handler, middleware.ts, an…",
+  "files": [
+    "SKILL.md",
+    "metadata.json",
+    "references/**",
+    "README.md",
+    "agents/**",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "license": "UNLICENSED",
+  "publishConfig": {
+    "access": "public"
+  },
+  "private": true
+}

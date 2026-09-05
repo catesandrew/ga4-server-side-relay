@@ -8,5 +8,9 @@
   "ignore": ["demo"],
   "fixed": [],
   "linked": [],
-  "updateInternalDependencies": "patch"
+  "updateInternalDependencies": "patch",
+  "privatePackages": {
+    "version": false,
+    "tag": false
+  }
 }
