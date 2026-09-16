@@ -83,6 +83,8 @@ importers:
         specifier: ^2.1.0
         version: 2.1.9(@types/node@22.20.1)(jsdom@25.0.1)
 
+  packages/skill-gtm-server-side-onboarding: {}
+
 packages:
 
   '@asamuzakjp/css-color@3.2.0':
