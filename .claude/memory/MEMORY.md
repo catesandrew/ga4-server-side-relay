@@ -1,0 +1,2 @@
+- [GA4 relay release status](project_ga4_relay_release.md) — @gtmss/ga4-relay is public on npm/GitHub, at 0.1.1; dossier at docs/sessions/2026-08-24-ga4-relay-fixes-release/
+- [GA4 test credentials](reference_ga4_credentials.md) — live MP credentials location + catesworks.dev as scratch test target
