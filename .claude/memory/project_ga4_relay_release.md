@@ -15,7 +15,7 @@ currently `0.1.1`.
 
 **Why:** built via a RALPLAN-DR consensus plan + Ralph implementation loop (7 rounds of
 adversarial codex review), then deliberately live-verified against a real GA4 property
-(`catesworks.dev`, using credentials at `/Volumes/dev-ssd/repos/personal/docs/ga4-credentials.md`,
+(`catesworks.dev`, using credentials at `/Volumes/dev-ssd/repos/catesworks/docs/ga4-credentials.md`,
 sensitive, not tracked in any repo) and real-browser Playwright e2e once outbound network access
 became available in the working environment. That live verification found and fixed two real bugs
 that 165 passing unit tests had missed — see the session dossier.
