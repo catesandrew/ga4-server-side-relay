@@ -9,7 +9,7 @@ metadata:
 ---
 
 Real GA4 accounts (account "catesworks", account ID 405697686) with per-domain Measurement
-Protocol API secrets live at `/Volumes/dev-ssd/repos/personal/docs/ga4-credentials.md` — deliberately
+Protocol API secrets live at `/Volumes/dev-ssd/repos/catesworks/docs/ga4-credentials.md` — deliberately
 outside git tracking, sensitive, do not commit anywhere. Covers ~15 personal-project domains, each
 with one Web data stream + one MP API secret named `posthog-forwarder`.
 
@@ -21,3 +21,5 @@ available and already signed into the Google account that owns this GA4 property
 check GA4's Realtime UI directly rather than only trusting HTTP status codes from the MP endpoint.
 Mark synthetic test events clearly (distinct event names, e.g. `..._spike_verification`) so
 they're identifiable in reporting.
+
+> Update 2026-11-20: `ga4-credentials.md` moved to `catesworks/docs/ga4-credentials.md` and no longer holds secret values; the 15 Measurement Protocol secrets are in 1Password (`infra-access` item `ga4-measurement-protocol`, field `GA4_API_SECRET_<DOMAIN>`).
